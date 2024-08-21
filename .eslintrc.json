@@ -1,7 +1,8 @@
 {
   "env": {
     "browser": true,
-    "es2021": true
+    "es2021": true,
+    "node": true
   },
   "ignorePatterns": ["node_modules", "dist", "build"],
   "extends": [
@@ -15,14 +16,14 @@
     "ecmaFeatures": {
       "jsx": true
     },
-    "ecmaVersion": 12,
+    "ecmaVersion": "latest",
     "sourceType": "module"
   },
   "plugins": ["react", "prettier", "import"],
   "rules": {
-    "indent": ["error", 2],
-    "prettier/prettier": ["error", { "semi": false }],
-    "linebreak-style": [0, "unix"],
+    "indent": "off",
+    "prettier/prettier": "error",
+    "linebreak-style": ["error", "unix"],
     "quotes": ["error", "single"],
     "semi": ["error", "never"],
     "react/react-in-jsx-scope": "off",

@@ -1,8 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
-import './TasksFilter.css'
-
 export default function TasksFilter({ filterName, filter, setFilter }) {
   return (
     <li>

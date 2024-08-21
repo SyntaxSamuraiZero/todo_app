@@ -1,19 +1,22 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 
 import NewTaskForm from '../NewTaskForm'
 import TaskList from '../TaskList'
 import Footer from '../Footer'
 
-import './App.css'
-
 export default function App() {
-  const [items, setItems] = useState([])
+  const [items, setItems] = useState(() => {
+    const savedItems = localStorage.getItem('items')
+    return savedItems ? JSON.parse(savedItems) : []
+  })
   const [inputValue, setInputValue] = useState('')
+  const [minutesValue, setMinutesValue] = useState('')
+  const [secondsValue, setSecondsValue] = useState('')
   const [filter, setFilter] = useState('All')
 
-  const handleInputChange = (event) => {
-    setInputValue(event.target.value)
-  }
+  useEffect(() => {
+    localStorage.setItem('items', JSON.stringify(items))
+  }, [items])
 
   const handleKeyDown = (event) => {
     if (event.key === 'Enter') {
@@ -24,15 +27,28 @@ export default function App() {
           {
             id: Date.now(),
             task: newItem,
+            min: parseInt(minutesValue) || 0,
+            sec: parseInt(secondsValue) || 0,
             done: false,
+            className: '',
           },
         ])
         setInputValue('')
+        setMinutesValue('')
+        setSecondsValue('')
       }
     }
   }
 
-  const setEditTask = (id, newTask) => {
+  const doneTask = (id) => {
+    const index = items.findIndex((el) => el.id === id)
+    const newItem = { ...items[index], done: !items[index].done }
+    const newArray = [...items.slice(0, index), newItem, ...items.slice(index + 1)]
+
+    setItems(() => newArray)
+  }
+
+  const editTask = (id, newTask) => {
     const index = items.findIndex((el) => el.id === id)
     const newItem = { ...items[index], task: newTask }
     const newArray = [...items.slice(0, index), newItem, ...items.slice(index + 1)]
@@ -46,24 +62,18 @@ export default function App() {
     setItems(() => newArray)
   }
 
-  const onTaskDone = (id) => {
-    const index = items.findIndex((el) => el.id === id)
-    const newItem = { ...items[index], done: !items[index].done }
-    const newArray = [...items.slice(0, index), newItem, ...items.slice(index + 1)]
-
-    setItems(() => newArray)
-  }
-
   let itemsLeft = items.filter((item) => item.done === false).length
 
   const getFilteredTask = () => {
-    if (filter === 'Active') {
-      return items.filter((item) => !item.done)
-    } else if (filter === 'Completed') {
-      return items.filter((item) => item.done)
-    } else if (filter === 'All') {
-      return items
-    }
+    return items.map((item) => {
+      if (filter === 'Active' && item.done) {
+        return { ...item, className: 'hidden' }
+      } else if (filter === 'Completed' && !item.done) {
+        return { ...item, className: 'hidden' }
+      } else {
+        return { ...item, className: '' }
+      }
+    })
   }
 
   const clearCompleted = () => {
@@ -73,18 +83,21 @@ export default function App() {
   }
 
   return (
-    <section className="todoapp">
-      <header className="header">
+    <section className='todoapp'>
+      <header className='header'>
         <h1>Todos</h1>
-        <NewTaskForm inputValue={inputValue} handleInputChange={handleInputChange} handleKeyDown={handleKeyDown} />
-      </header>
-      <section className="main">
-        <TaskList
-          getFilteredTask={getFilteredTask}
-          onTaskDone={onTaskDone}
-          setEditTask={setEditTask}
-          deleteTask={deleteTask}
+        <NewTaskForm
+          inputValue={inputValue}
+          setInputValue={setInputValue}
+          minutesValue={minutesValue}
+          setMinutesValue={setMinutesValue}
+          secondsValue={secondsValue}
+          setSecondsValue={setSecondsValue}
+          handleKeyDown={handleKeyDown}
         />
+      </header>
+      <section className='main'>
+        <TaskList getFilteredTask={getFilteredTask} doneTask={doneTask} editTask={editTask} deleteTask={deleteTask} />
         <Footer filter={filter} setFilter={setFilter} itemsLeft={itemsLeft} clearCompleted={clearCompleted} />
       </section>
     </section>

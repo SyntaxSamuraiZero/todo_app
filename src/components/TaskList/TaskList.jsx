@@ -2,13 +2,12 @@ import React from 'react'
 import PropTypes from 'prop-types'
 
 import Task from '../Task'
-import './TaskList.css'
 
-export default function TaskList({ getFilteredTask, deleteTask, onTaskDone, setEditTask }) {
+export default function TaskList({ getFilteredTask, doneTask, editTask, deleteTask }) {
   return (
-    <ul className="todo-list">
+    <ul className='todo-list'>
       {getFilteredTask().map((item) => (
-        <Task key={item.id} item={item} deleteTask={deleteTask} onTaskDone={onTaskDone} setEditTask={setEditTask} />
+        <Task key={item.id} item={item} doneTask={doneTask} editTask={editTask} deleteTask={deleteTask} />
       ))}
     </ul>
   )
@@ -16,7 +15,7 @@ export default function TaskList({ getFilteredTask, deleteTask, onTaskDone, setE
 
 TaskList.propTypes = {
   getFilteredTask: PropTypes.func.isRequired,
+  doneTask: PropTypes.func.isRequired,
+  editTask: PropTypes.func.isRequired,
   deleteTask: PropTypes.func.isRequired,
-  onTaskDone: PropTypes.func.isRequired,
-  setEditTask: PropTypes.func.isRequired,
 }

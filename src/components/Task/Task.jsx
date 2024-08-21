@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import PropTypes from 'prop-types'
 
-import './Task.css'
-
-export default function Task({ item, deleteTask, onTaskDone, setEditTask }) {
+export default function Task({ item, doneTask, editTask, deleteTask }) {
   const [newTask, setNewTask] = useState('')
   const [isEditing, setIsEditing] = useState(false)
+  const [isRunning, setIsRunning] = useState(false)
+  const [minutes, setMinutes] = useState(item.min)
+  const [seconds, setSeconds] = useState(item.sec)
   const [timeAgo, setTimeAgo] = useState(formatDistanceToNow(new Date(item.id), { includeSeconds: true }))
 
   useEffect(() => {
@@ -17,21 +18,31 @@ export default function Task({ item, deleteTask, onTaskDone, setEditTask }) {
     return () => clearInterval(intervalId)
   }, [item.id])
 
-  const editTask = () => {
-    setIsEditing(true)
-  }
+  useEffect(() => {
+    let timer
+    if (isRunning) {
+      timer = setInterval(() => {
+        setSeconds((prevSec) => {
+          if (prevSec === 59) {
+            setMinutes((prevMin) => prevMin + 1)
+            return 0
+          } else {
+            return prevSec + 1
+          }
+        })
+      }, 1000)
+    }
 
-  const handleInputChange = (event) => {
-    setNewTask(event.target.value)
-  }
+    return () => clearInterval(timer)
+  }, [isRunning])
 
   const handleKeyDown = (event) => {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' || event.key === 'Escape') {
       const newItem = newTask.trim()
       if (newItem === '') {
         setIsEditing(false)
       } else {
-        setEditTask(item.id, newItem)
+        editTask(item.id, newItem)
         setNewTask('')
         setIsEditing(false)
       }
@@ -43,34 +54,44 @@ export default function Task({ item, deleteTask, onTaskDone, setEditTask }) {
     if (newItem === '') {
       setIsEditing(false)
     } else {
-      setEditTask(item.id, newItem)
+      editTask(item.id, newItem)
       setNewTask('')
       setIsEditing(false)
     }
   }
 
   return (
-    <li className={isEditing ? 'editing' : item.done ? 'completed' : ''}>
-      <div className="view">
+    <li
+      className={`${isEditing ? 'editing' : item.done ? 'completed' : ''} ${item.className === 'hidden' ? 'hidden' : ''}`}
+    >
+      <div className='view'>
         <input
           id={`task-${item.id}`}
           name={`task-${item.id}`}
-          className="toggle"
-          type="checkbox"
+          className='toggle'
+          type='checkbox'
           checked={item.done}
-          onChange={() => onTaskDone(item.id)}
-        />
-        <label
-          onClick={() => {
-            onTaskDone(item.id)
+          onChange={() => {
+            if (!item.done) {
+              setIsRunning(false)
+            }
+            doneTask(item.id)
           }}
-        >
-          <span className="description">{item.task}</span>
-          <span className="created">created {timeAgo} ago</span>
+        />
+        <label>
+          <span className='title'>{item.task}</span>
+          <span className='description'>
+            <button className='icon icon-play' onClick={() => (item.done ? () => {} : setIsRunning(true))}></button>
+            <button className='icon icon-pause' onClick={() => setIsRunning(false)}></button>
+            <span className='timer'>
+              {minutes}:{seconds}
+            </span>
+          </span>
+          <span className='description'>created {timeAgo} ago</span>
         </label>
-        <button className="icon icon-edit" onClick={item.done ? () => {} : () => editTask()}></button>
+        <button className='icon icon-edit' onClick={item.done ? () => {} : () => setIsEditing(true)}></button>
         <button
-          className="icon icon-destroy"
+          className='icon icon-destroy'
           onClick={() => {
             deleteTask(item.id)
           }}
@@ -80,10 +101,12 @@ export default function Task({ item, deleteTask, onTaskDone, setEditTask }) {
         <input
           id={`edit-task-${item.id}`}
           name={`edit-task-${item.id}`}
-          type="text"
-          className="edit"
-          value={newTask}
-          onChange={handleInputChange}
+          type='text'
+          className='edit'
+          value={newTask || item.task}
+          onChange={(event) => {
+            setNewTask(event.target.value)
+          }}
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
           autoFocus
@@ -95,7 +118,7 @@ export default function Task({ item, deleteTask, onTaskDone, setEditTask }) {
 
 Task.propTypes = {
   item: PropTypes.object.isRequired,
+  doneTask: PropTypes.func.isRequired,
+  editTask: PropTypes.func.isRequired,
   deleteTask: PropTypes.func.isRequired,
-  onTaskDone: PropTypes.func.isRequired,
-  setEditTask: PropTypes.func.isRequired,
 }
