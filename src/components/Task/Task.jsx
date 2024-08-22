@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { formatDistanceToNow } from 'date-fns'
+import { format, formatDistanceToNow } from 'date-fns'
 import PropTypes from 'prop-types'
 
 export default function Task({ item, doneTask, editTask, deleteTask }) {
@@ -83,9 +83,7 @@ export default function Task({ item, doneTask, editTask, deleteTask }) {
           <span className='description'>
             <button className='icon icon-play' onClick={() => (item.done ? () => {} : setIsRunning(true))}></button>
             <button className='icon icon-pause' onClick={() => setIsRunning(false)}></button>
-            <span className='timer'>
-              {minutes}:{seconds}
-            </span>
+            <span className='timer'>{format(new Date(0, 0, 0, 0, minutes, seconds), 'mm:ss')}</span>
           </span>
           <span className='description'>created {timeAgo} ago</span>
         </label>
